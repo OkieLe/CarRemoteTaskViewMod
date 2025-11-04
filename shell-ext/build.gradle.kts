@@ -33,9 +33,13 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    buildFeatures {
+        aidl = true
+    }
 }
 
 dependencies {
+    compileOnly(files("$rootDir/libs/framework.jar", "$rootDir/libs/WindowManager-Shell.jar"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
