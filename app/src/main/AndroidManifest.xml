@@ -2,6 +2,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.MANAGE_ACTIVITY_TASKS"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.INTERNAL_SYSTEM_WINDOW"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.START_TASKS_FROM_RECENTS"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.MANAGE_APP_TOKENS"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.REORDER_TASKS"/>
+    <uses-permission android:name="android.permission.INJECT_EVENTS"
+        tools:ignore="ProtectedPermissions" />
+
+    <permission android:name="im.github.ole.taskview.permission.CREATE_TASK_VIEW"
+        android:protectionLevel="privileged|signature"/>
+    <uses-permission android:name="im.github.ole.taskview.permission.CREATE_TASK_VIEW" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -10,6 +26,18 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.TaskViewMod" />
+        android:theme="@style/Theme.TaskViewMod">
+
+        <service android:name=".service.TaskViewService"
+            android:exported="true"
+            android:enabled="true"
+            android:directBootAware="true"
+            android:permission="im.github.ole.taskview.permission.CREATE_TASK_VIEW">
+            <intent-filter>
+                <action android:name="im.github.ole.taskview.action.CREATE_TASK_VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </service>
+    </application>
 
 </manifest>

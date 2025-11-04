@@ -33,9 +33,13 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    buildFeatures {
+        aidl = true
+    }
 }
 
 dependencies {
+    implementation(files("$rootDir/libs/WindowManager-Shell-ext.jar"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

@@ -1,0 +1,149 @@
+Change-Id: I32c6d444ea8ebb3cd1510f3ce5bb89f9459a1621
+---
+ data/etc/com.android.systemui.xml             |  1 +
+ .../android/wm/shell/dagger/WMComponent.java  | 16 ++++++++
+ .../wm/shell/dagger/WMShellBaseModule.java    | 41 +++++++++++++------
+ packages/SystemUI/AndroidManifest.xml         |  2 +
+ .../android/systemui/SystemUIInitializer.java |  5 +++
+ 6 files changed, 58 insertions(+), 13 deletions(-)
+
+diff --git a/data/etc/com.android.systemui.xml b/data/etc/com.android.systemui.xml
+index 38ea4ac8d109..7ca8dc2a6f11 100644
+--- a/data/etc/com.android.systemui.xml
++++ b/data/etc/com.android.systemui.xml
+@@ -94,5 +94,6 @@
+         <permission name="android.permission.CONTROL_UI_TRACING" />
+         <permission name="android.permission.START_FOREGROUND_SERVICES_FROM_BACKGROUND" />
+         <permission name="android.permission.OVERRIDE_SYSTEM_KEY_BEHAVIOR_IN_FOCUSED_WINDOW"/>
++        <permission name="im.github.ole.taskview.permission.CREATE_TASK_VIEW"/>
+     </privapp-permissions>
+ </permissions>
+diff --git a/libs/WindowManager/Shell/src/com/android/wm/shell/dagger/WMComponent.java b/libs/WindowManager/Shell/src/com/android/wm/shell/dagger/WMComponent.java
+index c493aadd57b0..eb118f7d25cc 100644
+--- a/libs/WindowManager/Shell/src/com/android/wm/shell/dagger/WMComponent.java
++++ b/libs/WindowManager/Shell/src/com/android/wm/shell/dagger/WMComponent.java
+@@ -35,6 +35,9 @@ import com.android.wm.shell.startingsurface.StartingSurface;
+ import com.android.wm.shell.sysui.ShellInterface;
+ import com.android.wm.shell.taskview.TaskViewFactory;
+
++import com.android.wm.shell.ext.system.CarSystemUIProxyImpl;
++import com.android.wm.shell.ext.system.taskview.RemoteCarTaskViewTransitions;
++
+ import dagger.BindsInstance;
+ import dagger.Subcomponent;
+
+@@ -112,4 +115,17 @@ public interface WMComponent {
+      */
+     @WMSingleton
+     Optional<DesktopMode> getDesktopMode();
++
++    /**
++     * Returns the implementation of car system ui proxy which will be used by other apps to
++     * interact with the car system ui.
++     */
++    @WMSingleton
++    CarSystemUIProxyImpl getCarSystemUIProxy();
++
++    /**
++     * Returns the RemoteCarTaskViewTransitions used for transitions stuff related to task views.
++     */
++    @WMSingleton
++    RemoteCarTaskViewTransitions getRemoteCarTaskViewTransitions();
+ }
+diff --git a/libs/WindowManager/Shell/src/com/android/wm/shell/dagger/WMShellBaseModule.java b/libs/WindowManager/Shell/src/com/android/wm/shell/dagger/WMShellBaseModule.java
+index de86b22e0a99..0ad52f2b84a4 100644
+--- a/libs/WindowManager/Shell/src/com/android/wm/shell/dagger/WMShellBaseModule.java
++++ b/libs/WindowManager/Shell/src/com/android/wm/shell/dagger/WMShellBaseModule.java
+@@ -92,6 +92,8 @@ import com.android.wm.shell.desktopmode.DesktopTasksController;
+ import com.android.wm.shell.desktopmode.DesktopUserRepositories;
+ import com.android.wm.shell.displayareahelper.DisplayAreaHelper;
+ import com.android.wm.shell.displayareahelper.DisplayAreaHelperController;
++import com.android.wm.shell.ext.CarActivityServiceProvider;
++import com.android.wm.shell.ext.system.CarFullscreenTaskMonitorListener;
+ import com.android.wm.shell.freeform.FreeformComponents;
+ import com.android.wm.shell.fullscreen.FullscreenTaskListener;
+ import com.android.wm.shell.hidedisplaycutout.HideDisplayCutoutController;
+@@ -555,19 +557,32 @@ public abstract class WMShellBaseModule {
+
+     @WMSingleton
+     @Provides
+-    static FullscreenTaskListener provideFullscreenTaskListener(
+-            @DynamicOverride Optional<FullscreenTaskListener> fullscreenTaskListener,
+-            ShellInit shellInit,
+-            ShellTaskOrganizer shellTaskOrganizer,
+-            SyncTransactionQueue syncQueue,
+-            Optional<RecentTasksController> recentTasksOptional,
+-            Optional<WindowDecorViewModel> windowDecorViewModelOptional) {
+-        if (fullscreenTaskListener.isPresent()) {
+-            return fullscreenTaskListener.get();
+-        } else {
+-            return new FullscreenTaskListener(shellInit, shellTaskOrganizer, syncQueue,
+-                    recentTasksOptional, windowDecorViewModelOptional);
+-        }
++    static CarActivityServiceProvider provideCarActivityServiceProvider(
++        Context context, @ShellBackgroundThread Handler backgroundHandler) {
++        return new CarActivityServiceProvider(context, backgroundHandler);
++    }
++
++    @WMSingleton
++    @Provides
++    static FullscreenTaskListener provideFullScreenTaskListener(
++        Context context,
++        CarActivityServiceProvider carServiceProvider,
++        ShellInit shellInit,
++        ShellTaskOrganizer shellTaskOrganizer,
++        SyncTransactionQueue syncQueue,
++        Optional<RecentTasksController> recentTasksOptional,
++        Optional<WindowDecorViewModel> windowDecorViewModelOptional,
++        TaskViewTransitions taskViewTransitions
++    ) {
++
++        return new CarFullscreenTaskMonitorListener(context,
++                carServiceProvider,
++                shellInit,
++                shellTaskOrganizer,
++                syncQueue,
++                recentTasksOptional,
++                windowDecorViewModelOptional,
++                taskViewTransitions);
+     }
+
+     //
+diff --git a/packages/SystemUI/AndroidManifest.xml b/packages/SystemUI/AndroidManifest.xml
+index 11cb0703d353..048afa0d28b5 100644
+--- a/packages/SystemUI/AndroidManifest.xml
++++ b/packages/SystemUI/AndroidManifest.xml
+@@ -388,6 +388,8 @@
+     <!-- To be able to decipher default applications for certain roles in shortcut helper -->
+     <uses-permission android:name="android.permission.MANAGE_DEFAULT_APPLICATIONS" />
+
++    <uses-permission android:name="im.github.ole.taskview.permission.CREATE_TASK_VIEW" />
++
+     <protected-broadcast android:name="com.android.settingslib.action.REGISTER_SLICE_RECEIVER" />
+     <protected-broadcast android:name="com.android.settingslib.action.UNREGISTER_SLICE_RECEIVER" />
+     <protected-broadcast android:name="com.android.settings.flashlight.action.FLASHLIGHT_CHANGED" />
+diff --git a/packages/SystemUI/src/com/android/systemui/SystemUIInitializer.java b/packages/SystemUI/src/com/android/systemui/SystemUIInitializer.java
+index f530522fb707..1c68b226fff4 100644
+--- a/packages/SystemUI/src/com/android/systemui/SystemUIInitializer.java
++++ b/packages/SystemUI/src/com/android/systemui/SystemUIInitializer.java
+@@ -20,6 +20,7 @@ import android.content.Context;
+ import android.content.res.Resources;
+ import android.os.Handler;
+ import android.os.HandlerThread;
++import android.os.Process;
+ import android.util.Log;
+
+ import com.android.systemui.dagger.GlobalRootComponent;
+@@ -64,6 +65,10 @@ public abstract class SystemUIInitializer {
+      */
+     protected SysUIComponent.Builder prepareSysUIComponentBuilder(
+             SysUIComponent.Builder sysUIBuilder, WMComponent wm) {
++        if (Process.myUserHandle().isSystem()) {
++            wm.getCarSystemUIProxy();
++            wm.getRemoteCarTaskViewTransitions();
++        }
+         return sysUIBuilder;
+     }
+
+--
+2.43.0

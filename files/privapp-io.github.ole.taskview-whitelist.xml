@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<permissions>
+    <privapp-permissions package="im.brain.launcher">
+        <permission name="android.permission.MANAGE_ACTIVITY_TASKS"/>
+        <permission name="android.permission.INTERNAL_SYSTEM_WINDOW"/>
+        <permission name="android.permission.MANAGE_APP_TOKENS"/>
+        <permission name="android.permission.START_TASKS_FROM_RECENTS"/>
+        <permission name="android.permission.REORDER_TASKS"/>
+        <permission name="android.permission.INJECT_EVENTS"/>
+        <permission name="im.github.ole.taskview.permission.CREATE_TASK_VIEW"/>
+    </privapp-permissions>
+</permissions>
