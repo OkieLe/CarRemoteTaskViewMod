@@ -39,7 +39,7 @@ android {
 }
 
 dependencies {
-    implementation(files("$rootDir/libs/WindowManager-Shell-ext.jar"))
+    implementation(files("$rootDir/libs/framework.jar", "$rootDir/libs/WindowManager-Shell-ext.jar"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

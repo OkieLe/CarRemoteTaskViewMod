@@ -37,3 +37,4 @@
    - Copy `files/privapp-io.github.ole.taskview-whitelist.xml` into `packages/apps/TaskViewMod`
    - Add `TaskViewMod` to `PRODUCT_PACKAGES` in the device make file
 4. APP gets `CarActivityManager` via `CarActivityServiceProvider`
+    - Use `TaskViewController` to create `RemoteCarTaskView` and add it to your layout
