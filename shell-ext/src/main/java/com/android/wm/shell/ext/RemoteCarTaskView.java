@@ -36,6 +36,8 @@ public abstract class RemoteCarTaskView extends SurfaceView {
     private final SurfaceCallbackHandler mSurfaceCallbackHandler = new SurfaceCallbackHandler();
     private final Rect mTmpRect = new Rect();
     private final AtomicBoolean mReleased = new AtomicBoolean(false);
+    private final AtomicBoolean mDeferredSurfaceCreated = new AtomicBoolean(false);
+    private boolean mSurfaceCreatedDeferred = false;
     private boolean mInitialized = false;
     boolean mSurfaceCreated = false;
     private Region mObscuredTouchRegion;
@@ -89,6 +91,7 @@ public abstract class RemoteCarTaskView extends SurfaceView {
     public void updateWindowBounds() {
         ViewHelper.getBoundsOnScreen(RemoteCarTaskView.this, mTmpRect);
         try {
+            Log.d(TAG, "updateWindowBounds: " + mTmpRect);
             mICarTaskViewHost.setWindowBounds(mTmpRect);
         } catch (RemoteException e) {
             Log.e(TAG, "exception in setWindowBounds", e);
@@ -102,6 +105,7 @@ public abstract class RemoteCarTaskView extends SurfaceView {
      */
     public void setWindowBounds(Rect bounds) {
         try {
+            Log.d(TAG, "setWindowBounds: " + bounds);
             mICarTaskViewHost.setWindowBounds(bounds);
         } catch (RemoteException e) {
             Log.e(TAG, "exception in setWindowBounds", e);
@@ -131,7 +135,7 @@ public abstract class RemoteCarTaskView extends SurfaceView {
     }
 
     /**
-     * @return the {@link ActivityManager.RunningTaskInfo} of the task currently
+     * @return the {@link android.app.ActivityManager.RunningTaskInfo} of the task currently
      * running in the TaskView.
      */
     @MainThread
@@ -152,6 +156,26 @@ public abstract class RemoteCarTaskView extends SurfaceView {
     @MainThread
     public boolean isReleased() {
         return mReleased.get();
+    }
+
+    /**
+     * Disable task to front transition on surfaceCreated when it is background
+     * @param deferred true to disable, false to enable to front automatically
+     */
+    public void setSurfaceCreatedDeferred(boolean deferred) {
+        if (mSurfaceCreatedDeferred != deferred) {
+            Log.d(TAG, "setSurfaceCreatedDeferred: " + deferred);
+            mSurfaceCreatedDeferred = deferred;
+            if (mSurfaceCreated && !mSurfaceCreatedDeferred && mDeferredSurfaceCreated.get()) {
+                try {
+                    Log.i(TAG, "Resend deferred notifySurfaceCreated");
+                    mICarTaskViewHost.notifySurfaceCreated(
+                            SurfaceControlHelper.copy(getSurfaceControl()));
+                } catch (RemoteException e) {
+                    Log.e(TAG, "exception in notifySurfaceCreated", e);
+                }
+            }
+        }
     }
 
     /**
@@ -223,6 +247,7 @@ public abstract class RemoteCarTaskView extends SurfaceView {
             @NonNull ActivityOptions options,
             @Nullable Rect launchBounds) {
         try {
+            Log.d(TAG, "startActivity: " + pendingIntent + " " + launchBounds);
             mICarTaskViewHost.startActivity(
                     pendingIntent, fillInIntent, options.toBundle(), launchBounds);
         } catch (RemoteException exception) {
@@ -304,8 +329,13 @@ public abstract class RemoteCarTaskView extends SurfaceView {
             }
             mSurfaceCreated = true;
             try {
-                mICarTaskViewHost.notifySurfaceCreated(
-                        SurfaceControlHelper.copy(getSurfaceControl()));
+                if (!mSurfaceCreatedDeferred) {
+                    mICarTaskViewHost.notifySurfaceCreated(
+                            SurfaceControlHelper.copy(getSurfaceControl()));
+                } else {
+                    mDeferredSurfaceCreated.set(true);
+                    Log.d(TAG, "Skip notifySurfaceCreated");
+                }
             } catch (RemoteException e) {
                 Log.e(TAG, "exception in notifySurfaceCreated", e);
             }
@@ -316,6 +346,7 @@ public abstract class RemoteCarTaskView extends SurfaceView {
                 @NonNull SurfaceHolder holder, int format, int width, int height) {
             try {
                 ViewHelper.getBoundsOnScreen(RemoteCarTaskView.this, mTmpRect);
+                Log.d(TAG, "surfaceChanged setWindowBounds: " + mTmpRect);
                 mICarTaskViewHost.setWindowBounds(mTmpRect);
             } catch (RemoteException e) {
                 Log.e(TAG, "exception in setWindowBounds", e);
@@ -326,6 +357,8 @@ public abstract class RemoteCarTaskView extends SurfaceView {
         public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
             mSurfaceCreated = false;
             try {
+                Log.d(TAG, "surfaceDestroyed");
+                mDeferredSurfaceCreated.set(false);
                 mICarTaskViewHost.notifySurfaceDestroyed();
             } catch (RemoteException e) {
                 Log.e(TAG, "exception in notifySurfaceDestroyed", e);

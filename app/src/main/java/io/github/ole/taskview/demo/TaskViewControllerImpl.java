@@ -5,7 +5,6 @@ import static android.view.WindowManager.LayoutParams.TYPE_APPLICATION_STARTING;
 
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
-import android.app.ActivityTaskManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -127,8 +126,24 @@ public final class TaskViewControllerImpl implements TaskViewController,
     }
 
     @Override
+    public void onResume() {
+        if (getRemoteCarTaskViewTaskId() != INVALID_TASK_ID) {
+            Log.d(TAG, "Resume task view with task " + getRemoteCarTaskViewTaskId());
+            mRemoteCarTaskView.setSurfaceCreatedDeferred(false);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        if (getRemoteCarTaskViewTaskId() != INVALID_TASK_ID) {
+            Log.d(TAG, "Pause task view with task " + getRemoteCarTaskViewTaskId());
+            mRemoteCarTaskView.setSurfaceCreatedDeferred(true);
+        }
+    }
+
+    @Override
     public void onViewMoved() {
-        if (getRemoteCarTaskViewTaskId() != ActivityTaskManager.INVALID_TASK_ID) {
+        if (getRemoteCarTaskViewTaskId() != INVALID_TASK_ID) {
             Log.d(TAG, "Task view moved, update task bounds");
             mRemoteCarTaskView.updateWindowBounds();
         }

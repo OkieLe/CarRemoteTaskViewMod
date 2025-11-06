@@ -274,7 +274,7 @@ public final class ControlledRemoteCarTaskView extends RemoteCarTaskView {
     }
 
     /**
-     * @return the {@link ActivityManager.RunningTaskInfo} of the task currently
+     * @return the {@link android.app.ActivityManager.RunningTaskInfo} of the task currently
      * running in the TaskView.
      */
     @MainThread

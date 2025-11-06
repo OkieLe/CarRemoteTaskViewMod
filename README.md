@@ -36,5 +36,8 @@
    - Copy `files/Android.bp` into `packages/apps/TaskViewMod`
    - Copy `files/privapp-io.github.ole.taskview-whitelist.xml` into `packages/apps/TaskViewMod`
    - Add `TaskViewMod` to `PRODUCT_PACKAGES` in the device make file
-4. APP gets `CarActivityManager` via `CarActivityServiceProvider`
-    - Use `TaskViewController` to create `RemoteCarTaskView` and add it to your layout
+4. Launcher integrate `TaskOverlayManager` and `TaskViewController`
+    - Initialize `TaskOverlayManager` with host `Activity`(`Launcher`)
+    - Notify the lifecycle of `Launcher` to `TaskOverlayManager`
+    - Proxy `TaskOverlayTouchProxy` from `Workspace` to animate visibility of overlay
+    - [TODO]Send 'BACK' key event via AIDL from embedded task to Launcher via AIDL

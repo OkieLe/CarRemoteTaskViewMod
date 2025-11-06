@@ -31,9 +31,19 @@ public interface TaskViewController {
     void onStart();
 
     /**
+     * Called when task view is visible to user
+     */
+    void onResume();
+
+    /**
      * Called when position task view is changed
      */
     void onViewMoved();
+
+    /**
+     * Called when task view is invisible to user
+     */
+    void onPause();
 
     /**
      * Called when task view is unbound from host

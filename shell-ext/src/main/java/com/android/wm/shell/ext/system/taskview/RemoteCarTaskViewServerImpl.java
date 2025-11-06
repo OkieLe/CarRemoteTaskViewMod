@@ -73,18 +73,21 @@ public class RemoteCarTaskViewServerImpl implements TaskViewBase {
         @Override
         public void notifySurfaceCreated(SurfaceControl control) {
             ensureManageSystemUIPermission(mContext);
+            Log.d(TAG, "notifySurfaceCreated");
             mTaskViewTaskController.surfaceCreated(control);
         }
 
         @Override
         public void setWindowBounds(Rect bounds) {
             ensureManageSystemUIPermission(mContext);
+            Log.d(TAG, "setWindowBounds: " + bounds);
             mTaskViewTaskController.setWindowBounds(bounds);
         }
 
         @Override
         public void notifySurfaceDestroyed() {
             ensureManageSystemUIPermission(mContext);
+            Log.d(TAG, "notifySurfaceDestroyed");
             mTaskViewTaskController.surfaceDestroyed();
         }
 
@@ -139,6 +142,7 @@ public class RemoteCarTaskViewServerImpl implements TaskViewBase {
             if (taskInfo == null) {
                 return;
             }
+            Log.d(TAG, "setTaskVisibility: " + visibility);
             if (mTaskViewTaskController.isUsingShellTransitions()) {
                 mTaskViewTransitions.setTaskViewVisible(mTaskViewTaskController, visibility);
                 return;
@@ -272,6 +276,7 @@ public class RemoteCarTaskViewServerImpl implements TaskViewBase {
     public void onTaskAppeared(ActivityManager.RunningTaskInfo taskInfo, SurfaceControl leash) {
         applyAllInsets();
         try {
+            Log.d(TAG, "onTaskAppeared: taskId=" + taskInfo.taskId);
             mCarTaskViewClient.onTaskAppeared(taskInfo, leash);
         } catch (DeadSystemRuntimeException e) {
             Log.w(TAG, "Failed to call onTaskAppeared() as TaskView client has already died, "
@@ -282,6 +287,7 @@ public class RemoteCarTaskViewServerImpl implements TaskViewBase {
     @Override
     public void onTaskInfoChanged(ActivityManager.RunningTaskInfo taskInfo) {
         try {
+            Log.d(TAG, "onTaskInfoChanged: taskId=" + taskInfo.taskId);
             mCarTaskViewClient.onTaskInfoChanged(taskInfo);
         } catch (DeadSystemRuntimeException e) {
             Log.w(TAG, "Failed to call onTaskInfoChanged() as TaskView client has already died, "
@@ -292,6 +298,7 @@ public class RemoteCarTaskViewServerImpl implements TaskViewBase {
     @Override
     public void onTaskVanished(ActivityManager.RunningTaskInfo taskInfo) {
         try {
+            Log.d(TAG, "onTaskVanished: taskId=" + taskInfo.taskId);
             mCarTaskViewClient.onTaskVanished(taskInfo);
         } catch (DeadSystemRuntimeException e) {
             Log.w(TAG, "Failed to call onTaskVanished() as TaskView client has already died, "

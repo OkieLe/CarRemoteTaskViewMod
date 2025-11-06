@@ -12,8 +12,6 @@ import android.util.ArraySet;
 import android.util.Log;
 import android.view.Display;
 
-import androidx.annotation.NonNull;
-
 import com.android.wm.shell.ShellTaskOrganizer;
 import com.android.wm.shell.common.SyncTransactionQueue;
 import com.android.wm.shell.dagger.WMSingleton;
@@ -90,15 +88,13 @@ public final class CarSystemUIProxyImpl
         return mRemoteCarTaskViewServerSet;
     }
 
-    @NonNull
     @Override
-    public CarTaskViewHost createControlledCarTaskView(@NonNull CarTaskViewClient carTaskViewClient) {
+    public CarTaskViewHost createControlledCarTaskView(CarTaskViewClient carTaskViewClient) {
         return createCarTaskView(carTaskViewClient);
     }
 
-    @NonNull
     @Override
-    public CarTaskViewHost createCarTaskView(@NonNull CarTaskViewClient carTaskViewClient) {
+    public CarTaskViewHost createCarTaskView(CarTaskViewClient carTaskViewClient) {
         ensureManageSystemUIPermission(mContext);
         RemoteCarTaskViewServerImpl remoteCarTaskViewServerImpl =
                 new RemoteCarTaskViewServerImpl(
@@ -158,11 +154,10 @@ public final class CarSystemUIProxyImpl
      * {Car#PERMISSION_MANAGE_CAR_SYSTEM_UI} is not granted.
      */
     public static void ensureManageSystemUIPermission(Context context) {
-        if (Binder.getCallingPid() == Process.myPid()) {
+        if (Binder.getCallingPid() == android.os.Process.myPid()) {
             // If called from within SystemUI, allow.
             return;
         }
-        // No op here
         Log.i(TAG, "Checking permission of " + Binder.getCallingPid());
     }
 }

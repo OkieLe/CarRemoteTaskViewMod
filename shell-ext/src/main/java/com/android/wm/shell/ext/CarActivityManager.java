@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 /**
- * API to manage {@link Activity} in Car.
+ * API to manage {@link android.app.Activity} in Car.
  */
 public final class CarActivityManager {
     private static final String TAG = CarActivityManager.class.getSimpleName();

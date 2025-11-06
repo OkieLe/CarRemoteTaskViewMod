@@ -50,6 +50,7 @@ final class CarTaskViewControllerSupervisor {
             mCarTaskViewControllerHostLifecycleObserver =
             new CarTaskViewControllerHostLifecycle.CarTaskViewControllerHostLifecycleObserver() {
                 public void onHostAppeared(CarTaskViewControllerHostLifecycle lifecycle) {
+                    Log.i(TAG, "onHostAppeared " + mActivityHolders.containsKey(lifecycle));
                     mActivityHolders.get(lifecycle).maybeShowControlledTasks();
                 }
 
@@ -60,7 +61,7 @@ final class CarTaskViewControllerSupervisor {
                 @Override
                 public void onHostDestroyed(CarTaskViewControllerHostLifecycle lifecycle) {
                     lifecycle.unregisterObserver(this);
-
+                    Log.i(TAG, "onHostDestroyed " + mActivityHolders.containsKey(lifecycle));
                     ActivityHolder activityHolder = mActivityHolders.remove(lifecycle);
                     activityHolder.onActivityDestroyed();
 
