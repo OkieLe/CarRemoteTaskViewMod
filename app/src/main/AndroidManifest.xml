@@ -17,6 +17,9 @@
     <permission android:name="im.github.ole.taskview.permission.CREATE_TASK_VIEW"
         android:protectionLevel="privileged|signature"/>
     <uses-permission android:name="im.github.ole.taskview.permission.CREATE_TASK_VIEW" />
+    <permission android:name="im.github.ole.taskview.permission.MANAGE_OVERLAY"
+        android:protectionLevel="privileged|signature"/>
+    <uses-permission android:name="im.github.ole.taskview.permission.MANAGE_OVERLAY" />
 
     <application
         android:allowBackup="true"
@@ -35,6 +38,20 @@
             android:permission="im.github.ole.taskview.permission.CREATE_TASK_VIEW">
             <intent-filter>
                 <action android:name="im.github.ole.taskview.action.CREATE_TASK_VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </service>
+        <service android:name=".service.TaskChannelService"
+            android:exported="true"
+            android:enabled="true"
+            android:directBootAware="true"
+            android:permission="io.github.ole.taskview.permission.MANAGE_OVERLAY">
+            <intent-filter>
+                <action android:name="io.github.ole.taskview.action.GET_OVERLAY"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="io.github.ole.taskview.action.GET_HOST"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </service>
